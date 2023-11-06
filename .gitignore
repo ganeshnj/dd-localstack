@@ -95,3 +95,13 @@ examples/go-example/.DS_Store
 traces
 
 .DS_Store
+
+# SPM
+.DS_Store
+.build
+/Packages
+xcuserdata/
+DerivedData/
+.swiftpm
+.netrc
+
