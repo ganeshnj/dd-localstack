@@ -1,46 +1,50 @@
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use crate::datadog_span::DatadogSpan;
 
-pub(crate) trait Exporter {
-    fn export(&mut self, spans: Vec<Vec<DatadogSpan>>);
+pub trait StringExporter {
+    fn export(&mut self, s: String);
 }
 
-pub(crate) struct ConsoleExporter {}
+pub struct ConsoleStringExporter {}
 
-impl Exporter for ConsoleExporter {
-    fn export(&mut self, spans: Vec<Vec<DatadogSpan>>) {
-        let beautified = serde_json::to_string_pretty(&spans).unwrap();
-        print!("{}", beautified)
+impl StringExporter for ConsoleStringExporter {
+    fn export(&mut self, s: String) {
+        print!("{}", s)
     }
 }
 
-static mut FILE_COUNTER: u64 = 0;
-
-pub(crate) struct FileExporter {
+pub struct FileStringExporter {
     dir: String,
 }
 
-impl FileExporter {
-    pub(crate) fn new(dir: String) -> FileExporter {
+impl FileStringExporter {
+    pub fn new(dir: String) -> FileStringExporter {
         if !Path::new(&dir).exists() {
             fs::create_dir_all(&dir).unwrap();
         }
 
-        FileExporter {
+        FileStringExporter {
             dir,
         }
     }
 }
 
-impl Exporter for FileExporter {
-    fn export(&mut self, spans: Vec<Vec<DatadogSpan>>) {
-        unsafe { FILE_COUNTER += 1; }
-        let file_name = format!("{}/{}.json", self.dir, unsafe { FILE_COUNTER });
+impl StringExporter for FileStringExporter {
+    fn export(&mut self, s: String) {
+        // get highest file number
+        let mut file_counter = 0;
+        for entry in fs::read_dir(&self.dir).unwrap() {
+            let entry = entry.unwrap();
+            let path = entry.path();
+            let file_name = path.file_name().unwrap().to_str().unwrap();
+            let file_number = file_name.split(".").next().unwrap().parse::<u64>().unwrap();
+            if file_number > file_counter {
+                file_counter = file_number;
+            }
+        }
+        let file_name = format!("{}/{}.json", self.dir, file_counter + 1);
         let mut file = fs::File::create(file_name).unwrap();
-        let json = serde_json::to_string_pretty(&spans).unwrap();
-        file.write_all(json.as_bytes()).unwrap();
+        file.write_all(s.as_bytes()).unwrap();
     }
 }
-

@@ -36,10 +36,12 @@ Hit `localhost:8126/httpbin/get` to inspect sent headers
 
 #### Swift example
 
+Debug app with Xcode
+
 ```
 cd examples/swift-example/distributed-tracing
-swift build
-swift run
+open Package.swift
 ```
+
 
 Check the output on console.

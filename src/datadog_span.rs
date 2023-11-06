@@ -15,3 +15,9 @@ pub(crate) struct DatadogSpan {
     error: i64,
     start: u64,
 }
+
+#[derive(Debug, Deserialize, Clone, Serialize)]
+pub(crate) struct RUMSpans {
+    spans: Vec<HashMap<String, serde_json::Value>>,
+    env: String,
+}
