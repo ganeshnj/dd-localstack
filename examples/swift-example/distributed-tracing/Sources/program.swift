@@ -17,11 +17,22 @@ struct Program {
             trackingConsent: .granted
         )
 
-        Trace.enable(with: .init(urlSessionTracking: .init(firstPartyHostsTracing: .trace(hosts: ["localhost"], sampleRate: 100))))
-        let delegate = Delegate()
-        let session = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
-        URLSessionInstrumentation.enable(with: .init(delegateClass: Delegate.self))
-        let url = URL(string: "http://localhost:8126/httpbin/get")!
+        Trace.enable(with: .init(urlSessionTracking: .init(firstPartyHostsTracing: .trace(hosts: ["httpbin.org"], sampleRate: 100))))
+        let delegate1 = Delegate1()
+        let session1 = URLSession(configuration: .default, delegate: delegate1, delegateQueue: nil)
+        URLSessionInstrumentation.enable(with: .init(delegateClass: Delegate1.self))
+        try await makeRequest(session: session1)
+
+        let delegate2 = Delegate2()
+        let session2 = URLSession(configuration: .default, delegate: delegate2, delegateQueue: nil)
+        URLSessionInstrumentation.enable(with: .init(delegateClass: Delegate2.self))
+        try await makeRequest(session: session2)
+
+        try await makeRequest(session: session1)
+    }
+
+    static func makeRequest(session: URLSession) async throws {
+        let url = URL(string: "https://httpbin.org/get")!
         let (data, _) = try await session.data(from: url)
 
         let response = try JSONDecoder().decode(GetResponse.self, from: data)
@@ -32,7 +43,11 @@ struct Program {
         }
     }
 
-    class Delegate: NSObject, URLSessionDataDelegate {
+    class Delegate1: NSObject, URLSessionDataDelegate {
+
+    }
+    
+    class Delegate2: NSObject, URLSessionDataDelegate {
 
     }
 
