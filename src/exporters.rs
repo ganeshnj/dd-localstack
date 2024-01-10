@@ -2,48 +2,38 @@ use std::fs;
 use std::io::Write;
 use std::path::Path;
 
-pub trait StringExporter {
+pub trait JSONExporter {
     fn export(&mut self, s: String);
 }
 
-pub struct ConsoleStringExporter {}
+pub struct ConsoleExporter {}
 
-impl StringExporter for ConsoleStringExporter {
+impl JSONExporter for ConsoleExporter {
     fn export(&mut self, s: String) {
         print!("{}", s)
     }
 }
 
-pub struct FileStringExporter {
+pub struct FileExporter {
     dir: String,
 }
 
-impl FileStringExporter {
-    pub fn new(dir: String) -> FileStringExporter {
+impl FileExporter {
+    pub fn new(dir: String) -> FileExporter {
         if !Path::new(&dir).exists() {
             fs::create_dir_all(&dir).unwrap();
         }
 
-        FileStringExporter {
+        FileExporter {
             dir,
         }
     }
 }
 
-impl StringExporter for FileStringExporter {
+impl JSONExporter for FileExporter {
     fn export(&mut self, s: String) {
-        // get highest file number
-        let mut file_counter = 0;
-        for entry in fs::read_dir(&self.dir).unwrap() {
-            let entry = entry.unwrap();
-            let path = entry.path();
-            let file_name = path.file_name().unwrap().to_str().unwrap();
-            let file_number = file_name.split(".").next().unwrap().parse::<u64>().unwrap();
-            if file_number > file_counter {
-                file_counter = file_number;
-            }
-        }
-        let file_name = format!("{}/{}.json", self.dir, file_counter + 1);
+        let current_timestamp = std::time::SystemTime::now().duration_since(std::time::SystemTime::UNIX_EPOCH).unwrap().as_nanos();
+        let file_name = format!("{}/{}.json", self.dir, current_timestamp);
         let mut file = fs::File::create(file_name).unwrap();
         file.write_all(s.as_bytes()).unwrap();
     }
