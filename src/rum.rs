@@ -4,7 +4,7 @@ use crate::datadog_span::RUMSpans;
 use crate::exporters::{ConsoleExporter, FileExporter, JSONExporter};
 use crate::OUTPUT_DIR;
 
-#[post("/rum/api/v2/spans")]
+#[post("/api/v2/spans")]
 async fn rum_spans(body: Bytes, request: HttpRequest) -> Result<HttpResponse, Error> {
     let cur_dir = format!("{}/{}", std::env::current_dir().unwrap().to_str().unwrap(), OUTPUT_DIR);
     let lines = String::from_utf8(body.to_vec()).unwrap();
@@ -20,7 +20,7 @@ async fn rum_spans(body: Bytes, request: HttpRequest) -> Result<HttpResponse, Er
     let mut console_exporter = ConsoleExporter {};
     console_exporter.export(pretty_json.clone());
 
-    let mut file_exporter = FileExporter::new(format!("{}/rum/api/v2/spans", cur_dir));
+    let mut file_exporter = FileExporter::new(format!("{}/api/v2/spans", cur_dir));
     file_exporter.export(pretty_json);
 
     Ok(HttpResponse::Ok().finish()) // <- send response
