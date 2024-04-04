@@ -21,7 +21,7 @@ func main() {
 	otel.SetTracerProvider(provider)
 
 	tracer := otel.Tracer("")
-	ctx, span := tracer.Start(
+	_, span := tracer.Start(
 		context.Background(),
 		"span_name",
 		trace.WithAttributes(attribute.String("hello", "world")))
@@ -35,8 +35,7 @@ func main() {
 	span.SetStatus(codes.Error, "operationThatCouldFail failed")
 	_, err := operationThatCouldFail()
 	span.RecordError(err)
+	span.RecordError(err)
 
-	_, childSpan := tracer.Start(ctx, "child_span")
-	childSpan.End()
 	span.End()
 }
